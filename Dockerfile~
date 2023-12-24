@@ -1,0 +1,27 @@
+FROM debian:stretch
+
+# Install dependencies and NGINX
+RUN apt-get update && \
+    apt-get install -y git gcc make libpcre3-dev libssl-dev wget && \
+    mkdir -p /home/nginx-rtmp-module /home/nginx && \
+    git clone https://github.com/arut/nginx-rtmp-module /home/nginx-rtmp-module && \
+    cd /home/nginx && \
+    wget http://nginx.org/download/nginx-1.18.0.tar.gz && \
+    tar zxpvf nginx-1.18.0.tar.gz && \
+    cd nginx-1.18.0 && \
+    ./configure --add-module=/home/nginx-rtmp-module/ --with-http_ssl_module --prefix=/usr/local/nginx-streaming/ && \
+    make && make install && \
+    rm -rf /home/nginx /var/lib/apt/lists/*
+
+# Set up directories and copy files
+RUN mkdir -p /var/www/html /var/www /var/log/nginx && \
+    cp /home/nginx-rtmp-module/stat.xsl /var/www/ && \
+    rm -rf /usr/local/nginx-streaming/html/* && \
+    cp /var/www/index.html /usr/local/nginx-streaming/html/ && \
+    cp /var/www/crossdomain.xml /usr/local/nginx-streaming/html/
+
+# Copy NGINX configuration
+ADD nginx/nginx.conf /usr/local/nginx-streaming/conf/nginx.conf
+
+EXPOSE 80
+EXPOSE 1935
