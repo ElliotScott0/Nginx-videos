@@ -1,0 +1,5 @@
+#stops, removes and builds latest docker file 
+docker rm -f videoserv
+docker build -t video:latest .
+
+docker run -d -p 1935:1935 -p 80:80 --name videoserv -v $PWD/mp4:/var/mp4s -v $PWD/www:/var/www video:latest
